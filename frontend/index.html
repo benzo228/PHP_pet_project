@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Project | Swarm Cluster</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover { transform: translateY(-5px); }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            border-left: 3px solid #3b82f6;
+            padding-left: 1rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            word-break: break-all;
+        }
+
+        button {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 0.8rem;
+            margin-bottom: 0.8rem;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .output {
+            background: #0f172a;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border: 1px solid #334155;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #475569;
+            font-size: 0.75rem;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>🐳 Swarm Pet Project</h1>
+        <div class="subtitle">
+            Docker Swarm • 3 ноды • PHP • PostgreSQL • Redis
+            <span class="badge">v2.0</span>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Хостнейм</div>
+                <div class="info-value" id="hostname">—</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Время на сервере</div>
+                <div class="info-value" id="time">—</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Статус API</div>
+                <div class="info-value" id="apiStatus">Проверка...</div>
+            </div>
+        </div>
+
+        <div>
+            <button id="btnHello">👋 Привет</button>
+            <button id="btnStatus">📊 Статус кластера</button>
+            <button id="btnTest">🔌 Тест API</button>
+            <button id="btnCounter">📈 Увеличить счётчик (Redis)</button>
+            <button id="btnDbTest">🐘 Проверить PostgreSQL</button>
+        </div>
+
+        <div class="output" id="output">
+            Нажми на кнопку, чтобы увидеть ответ API
+        </div>
+    </div>
+    <footer>
+        Docker Swarm • PHP 8.3 • PostgreSQL 16 • Redis 7
+    </footer>
+</div>
+
+<script>
+    // Универсальная функция запроса к API
+    async function callApi(endpoint) {
+        try {
+            const response = await fetch(endpoint);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            return { error: error.message };
+        }
+    }
+
+    // Обновление информации о системе (хосте, времени, статусе)
+    async function updateSystemInfo() {
+        try {
+            const res = await fetch('/api/info');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('hostname').innerText = data.hostname || 'unknown';
+                document.getElementById('time').innerText = data.time || new Date().toLocaleString();
+                document.getElementById('apiStatus').innerHTML = '<span style="color:#10b981">✅ Доступен</span>';
+            } else {
+                throw new Error('API не отвечает');
+            }
+        } catch {
+            document.getElementById('hostname').innerText = 'n/a (API not ready)';
+            document.getElementById('time').innerText = new Date().toLocaleString();
+            document.getElementById('apiStatus').innerHTML = '<span style="color:#f97316">⏳ Ожидает бэкенд</span>';
+        }
+    }
+
+    // Обработчики кнопок
+    document.getElementById('btnHello').addEventListener('click', async () => {
+        document.getElementById('output').innerHTML = '<span class="loading">🔄 Запрос к /api/hello...</span>';
+        const data = await callApi('/api/hello');
+        document.getElementById('output').innerHTML = JSON.stringify(data, null, 2);
+    });
+
+    document.getElementById('btnStatus').addEventListener('click', () => {
+        const fakeStatus = {
+            cluster: "Swarm",
+            nodes: 3,
+            services: ["frontend", "php", "postgres", "redis", "registry"],
+            version: "1.0"
+        };
+        document.getElementById('output').innerHTML = JSON.stringify(fakeStatus, null, 2);
+    });
+
+    document.getElementById('btnTest').addEventListener('click', async () => {
+        document.getElementById('output').innerHTML = '<span class="loading">🔄 Проверка соединения с бэкендом...</span>';
+        try {
+            const res = await fetch('/api/hello');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('output').innerHTML = `✅ Бэкенд отвечает:\n${JSON.stringify(data, null, 2)}`;
+            } else {
+                document.getElementById('output').innerHTML = `❌ Бэкенд вернул HTTP ${res.status}. PHP может быть не развёрнут.`;
+            }
+        } catch (e) {
+            document.getElementById('output').innerHTML = `⚠️ Не удалось подключиться к бэкенду.\nОшибка: ${e.message}`;
+        }
+    });
+
+    document.getElementById('btnCounter').addEventListener('click', async () => {
+        document.getElementById('output').innerHTML = '<span class="loading">🔄 Увеличение счётчика в Redis...</span>';
+        const data = await callApi('/api/counter');
+        document.getElementById('output').innerHTML = JSON.stringify(data, null, 2);
+    });
+
+    document.getElementById('btnDbTest').addEventListener('click', async () => {
+        document.getElementById('output').innerHTML = '<span class="loading">🔄 Запрос к PostgreSQL...</span>';
+        const data = await callApi('/api/db-test');
+        document.getElementById('output').innerHTML = JSON.stringify(data, null, 2);
+    });
+
+    // Первоначальное обновление и интервал
+    updateSystemInfo();
+    setInterval(updateSystemInfo, 10000);
+</script>
+</body>
+</html>

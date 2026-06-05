@@ -1,0 +1,24 @@
+version: '3.8'
+
+networks:
+  registry-net:
+    driver: overlay
+
+services:
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+    networks:
+      - registry-net
+    deploy:
+      mode: replicated
+      replicas: 1
+volumes:
+  registry-data:
+
+#локальный registry для образов
+#docker tag hello-world 192.168.88.130:5000/hello
+#docker push 192.168.88.130:5000/hello
