@@ -1,0 +1,7 @@
+---
+- name: Deploy monitoring stack to Docker Swarm
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - monitoring

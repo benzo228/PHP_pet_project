@@ -1,0 +1,10 @@
+# ansible/group_vars/all/main.yml
+swarm_manager_ip: "192.168.88.130"
+registry_url: "192.168.88.130:5000"
+
+monitoring_stack_name: "monitoring"
+monitoring_dir: "/opt/monitoring"
+prometheus_config_dir: "{{ monitoring_dir }}/prometheus"
+grafana_data_dir: "{{ monitoring_dir }}/grafana"
+
+monitoring_node_constraints: "node.role == manager"
