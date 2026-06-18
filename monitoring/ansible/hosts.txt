@@ -1,0 +1,4 @@
+[swarm]
+manager1 ansible_host=192.168.88.130
+worker1 ansible_host=192.168.88.131
+worker2 ansible_host=192.168.88.132
